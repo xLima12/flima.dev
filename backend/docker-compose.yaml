@@ -1,0 +1,57 @@
+services:
+  backend:
+    image: portfolio-backend:1.0
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/local_db
+      SPRING_DATASOURCE_USERNAME: local_user
+      SPRING_DATASOURCE_PASSWORD: local_password
+    networks:
+      - default
+
+  postgres:
+    container_name: local_db_flima_dev
+    image: postgres
+    environment:
+      POSTGRES_DB: local_db
+      POSTGRES_USER: local_user
+      POSTGRES_PASSWORD: local_password
+      DATABASE_URL: jdbc:postgresql://localhost:5432/local_db
+    ports:
+      - 5432:5432
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+#    volumes:
+#      - grafana-storage:/var/lib/grafana
+    restart: unless-stopped
+
+#  volumes:
+#    grafana-storage:
